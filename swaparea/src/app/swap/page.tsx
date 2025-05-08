@@ -1,6 +1,7 @@
 "use client";
 import React, {useState} from 'react';
-import { FaHome, FaSearch, FaComments, FaUser } from 'react-icons/fa';
+import { useRouter } from   'next/navigation';
+import { FaHome, FaSearch, FaShoppingCart, FaUser } from 'react-icons/fa';
 
 const SwapPage: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -15,13 +16,24 @@ const SwapPage: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
+  const router = useRouter();
+  const handleHome = () => {
+    router.push('/home');
+  };
+  const handlePrifile = () => {
+    router.push('/profile');
+  };
+  const handleList = () => {
+    router.push('/list');
+  };
+
 
   return (
     <div style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.logo}>Swap Box</h1>
         <nav style={styles.nav}>
-                <a href="#" style={styles.navLink}><FaHome /></a>
+                <a href="#" onClick={handleHome}style={styles.navLink}><FaHome /></a>
                 <div style={styles.searchContainer}>
                   <FaSearch style={styles.searchIcon} />
                     <input
@@ -30,8 +42,8 @@ const SwapPage: React.FC = () => {
                       style={styles.searchInput}
                     />
                 </div>
-                <a href="#" style={styles.navLink}><FaComments /></a>
-                <a href="#" style={styles.navLink}><FaUser /></a>
+                <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
+                <a href="#" onClick={handlePrifile} style={styles.navLink}><FaUser /></a>
           </nav>
       </header>
       <main style={styles.main}>

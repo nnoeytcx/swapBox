@@ -1,7 +1,7 @@
 'use client'; 
-import React from 'react';
+import React,{ useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaHome, FaSearch, FaComments, FaUser } from 'react-icons/fa';
+import { FaHome, FaSearch, FaShoppingCart, FaUser } from 'react-icons/fa';
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -11,12 +11,21 @@ const HomePage: React.FC = () => {
   const handleSwaparea = () => {
     router.push('/area');
   };
+  const handleList = () => {
+    router.push('/list');
+  };
+  const handleProfile = () => {
+    router.push('/profile');
+  };
+  const handleHome = () => {
+    router.push('/home');
+  };
   return (
     <div style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.logo}>Swap Box</h1>
         <nav style={styles.nav}>
-        <a href="#" style={styles.navLink}><FaHome /></a>
+        <a href="#" onClick={handleHome} style={styles.navLink}><FaHome /></a>
         <div style={styles.searchContainer}>
           <FaSearch style={styles.searchIcon} />
             <input
@@ -25,8 +34,8 @@ const HomePage: React.FC = () => {
               style={styles.searchInput}
             />
         </div>
-        <a href="#" style={styles.navLink}><FaComments /></a>
-        <a href="#" style={styles.navLink}><FaUser /></a>
+        <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
+        <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
         </nav>
       </header>
       <main style={styles.main}>
