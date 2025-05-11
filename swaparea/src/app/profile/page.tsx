@@ -3,7 +3,7 @@
 import React, { useState,useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaHome, FaSearch, FaShoppingCart, FaUser , FaEdit, FaTrash, FaRegHeart,FaHeart, FaComments} from 'react-icons/fa';
-import axios from 'axios';
+
 
 const ProfilePage: React.FC = () => {
 
