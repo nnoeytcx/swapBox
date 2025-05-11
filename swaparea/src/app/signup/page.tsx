@@ -4,16 +4,44 @@ import { useRouter } from 'next/navigation';
 
 const SignUpPage: React.FC = () => {
   const router = useRouter();
-  
-    const handleSignin = () => {
-      router.push('/home');
+
+  const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+
+    const body = {
+      username: form.username.value,
+      email: form.email.value,
+      password: form.password.value,
+      confirm_password: form.confirmPassword.value
     };
+  
+    try {
+      const response = await fetch('http://localhost:8000/api/register/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(data.error || JSON.stringify(data));
+        return;
+      }
+  
+      alert('Account created!');
+      router.push('/login');
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    }
+  };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Swap Box</h1>
       <div style={styles.formContainer}>
-        <form style={styles.form}>
+        <form style={styles.form} onSubmit={handleSignup}>
           <div style={styles.inputGroup}>
             <label style={styles.label} htmlFor="username">Username</label>
             <input style={styles.input} type="text" id="username" name="username" required />
@@ -30,7 +58,7 @@ const SignUpPage: React.FC = () => {
             <label style={styles.label} htmlFor="confirmPassword">Confirm Password</label>
             <input style={styles.input} type="password" id="confirmPassword" name="confirmPassword" required />
           </div>
-          <button style={styles.signUpButton} onClick={handleSignin} type="submit">Sign up</button>
+          <button style={styles.signUpButton} type="submit">Sign up</button>
         </form>
         <p style={styles.signInText}>
           Already have an account? <a href="/login" style={styles.signInLink}>Sign in</a>
@@ -39,6 +67,10 @@ const SignUpPage: React.FC = () => {
     </div>
   );
 };
+
+// ... keep your `styles` as is
+
+
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {

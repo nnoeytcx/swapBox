@@ -1,32 +1,79 @@
 "use client";
-import React, {useState} from 'react';
-import { useRouter } from   'next/navigation';
+import React, { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaHome, FaSearch, FaShoppingCart, FaUser } from 'react-icons/fa';
 
 const SwapPage: React.FC = () => {
-  const [image, setImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
-  const router = useRouter();
-  const handleHome = () => {
-    router.push('/home');
-  };
-  const handlePrifile = () => {
-    router.push('/profile');
-  };
-  const handleList = () => {
-    router.push('/list');
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    // Append additional fields manually to FormData
+    const title = (form.querySelector('input[name="title"]') as HTMLInputElement).value;
+    const swap = (form.querySelector('input[name="swap"]') as HTMLInputElement).value;
+    const description = (form.querySelector('textarea[name="description"]') as HTMLTextAreaElement).value;
+    
+    formData.append('title', title);
+    formData.append('swap', swap);
+    formData.append('description', description);
+
+    const token = localStorage.getItem('jwt_access');
+    console.log("Token:", token); 
+  
+    if (!token) {
+      alert('You need to log in first!');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:8000/api/upload-item/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      
+  const text = await res.text(); // Use text to capture HTML error pages
+
+  try {
+    const json = JSON.parse(text); // Try to parse JSON if it is valid
+    if (res.ok) {
+      alert("Upload success:");
+      router.push('/area');
+    } else {
+      console.error("Upload error:", json);
+    }
+  } catch {
+    console.error("Server error (non-JSON):", text); // Logs 500 HTML
+  }
+
+} catch (err) {
+  console.error("Fetch failed:", err);
+}
   };
 
+  const handleHome = () => router.push('/home');
+  const handleProfile = () => router.push('/profile');
+  const handleList = () => router.push('/list');
 
   return (
     <div style={styles.container}>
@@ -43,27 +90,36 @@ const SwapPage: React.FC = () => {
                     />
                 </div>
                 <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
-                <a href="#" onClick={handlePrifile} style={styles.navLink}><FaUser /></a>
+                <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
           </nav>
       </header>
       <main style={styles.main}>
         <h2 style={styles.title}>Swap Your Items!</h2>
-        <div style={styles.uploadContainer}>
-          <input type="file" accept="image/*" onChange={handleImageUpload} style={styles.uploadInput} />
-          {image && <img src={image} alt="Uploaded Preview" style={styles.imagePreview} />}
-        </div>
-        <form style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="productName">ชื่อสินค้า</label>
-            <input style={styles.input} type="text" id="productName" name="productName" required />
+        <form style={styles.form} onSubmit={handleSubmit} encType="multipart/form-data">
+          <div style={styles.uploadContainer}>
+            <input
+              type="file"
+              name="image"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={styles.uploadInput}
+            />
+            {imagePreview && (
+              <img src={imagePreview} alt="Uploaded Preview" style={styles.imagePreview} />
+            )}
           </div>
           <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="swapItem">สิ่งที่อยากแลก</label>
-            <input style={styles.input} type="text" id="swapItem" name="swapItem" required />
+            <label style={styles.label} htmlFor="title">ชื่อสินค้า</label>
+            <input style={styles.input} type="text" id="title" name="title" required />
           </div>
           <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="details">รายละเอียด</label>
-            <textarea style={styles.textarea} id="details" name="details" rows={3} />
+            <label style={styles.label} htmlFor="swap">สิ่งที่อยากแลก</label>
+            <input style={styles.input} type="text" id="swap" name="swap" required />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label} htmlFor="description">รายละเอียด</label>
+            <textarea style={styles.textarea} id="description" name="description" rows={3} />
           </div>
           <button style={styles.button} type="submit">Start Swap</button>
         </form>
@@ -217,7 +273,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#1a1a2e',
     padding: '0.5rem 0.5rem 0.5rem 2rem', // padding-left เผื่อ icon
     width: '120px',
-  },
-};
-
-export default SwapPage;
+    },
+    };
+    
+    export default SwapPage;

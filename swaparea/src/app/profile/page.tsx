@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaHome, FaSearch, FaShoppingCart, FaUser , FaEdit, FaTrash, FaRegHeart,FaHeart, FaComments} from 'react-icons/fa';
+import axios from 'axios';
 
 const ProfilePage: React.FC = () => {
+
+  
   const user = {
     name: "Jennie Ruby Jen",
     email: "jennierubyjen@gmail.com",
@@ -17,41 +20,32 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: "เสื้อยืดสีขาว size L",
-      swapRequest: "แลก: เสื้อยืดสีดำ size M",
-      image: "https://happeningandfriends.com/uploads/happening/products/59/005884/เสื้อยึด-ไก่.jpg",
-      description: "หรือแลกกับอะไรก็ได้",
-      likes: 0,
-      comments: 0,
-      commentList: [],
-      liked: false,
-    },
-    {
-      id: 2,
-      name: "กางเกงวอร์ม",
-      swapRequest: "แลก: กางเกงยีนส์",
-      image: "https://d29c1z66frfv6c.cloudfront.net/pub/media/catalog/product/large/3ce059764171988df3bc62af318fa25da33cce63_xxl-1.jpg",
-      description: "หรือแลกกับอะไรก็ได้",
-      likes: 0,
-      comments: 0,
-      commentList: [],
-      liked: false,
-    },
-    {
-      id: 3,
-      name: "รองเท้าผ้าใบ size 38",
-      swapRequest: "แลก: รองเท้าผ้าใบ size 36",
-      image: "https://www.jdsports.co.th/cdn/shop/files/jd_MR530SG_b.jpg?crop=region&crop_height=3039&crop_left=1&crop_top=0&crop_width=4284&v=1726220188&width=4288",
-      description: "หรือแลกกับอะไรก็ได้",
-      likes: 0,
-      comments: 0,
-      commentList: [],
-      liked: false,
-    },
-  ]);
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const token = localStorage.getItem('jwt_access');
+        console.log("Token:", token);
+        const res = await fetch("http://127.0.0.1:8000/api/user-items/", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch items");
+        const data = await res.json();
+        setItems(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [showCommentInput, setShowCommentInput] = useState<{ [key: number]: boolean }>({});
@@ -80,18 +74,40 @@ const ProfilePage: React.FC = () => {
     router.push('/list');
   };
 
-  const handleLike = (id: number) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id
-          ? {
-              ...item,
-              likes: item.liked ? item.likes - 1 : item.likes + 1,
-              liked: !item.liked,
-            }
-          : item
-      )
-    );
+  const handleLike = async (itemId: number, liked: boolean) => {
+    const token = localStorage.getItem('jwt_access');
+    console.log("Token:", token);
+    if (!token) return;
+
+    const url = liked
+      ? `http://localhost:8000/api/items/${itemId}/unlike/`
+      : `http://localhost:8000/api/items/${itemId}/like/`;
+
+    try {
+      const res = await fetch(url, {
+        method: liked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  like_count: item.liked ? item.like_count - 1 : item.like_count + 1,
+                  liked: !item.liked,
+                }
+              : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error toggling like", err);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -100,18 +116,43 @@ const ProfilePage: React.FC = () => {
 
   const handleEdit = (item: any) => {
     setEditingItemId(item.id);
-    setEditName(item.name);
-    setEditSwapRequest(item.swapRequest);
+    setEditName(item.title);
+    setEditSwapRequest(item.swap);
   };
 
-  const handleSaveEdit = (id: number) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, name: editName, swapRequest: editSwapRequest } : item
-      )
+  const handleSaveEdit = async (id: number) => {
+    const token = localStorage.getItem('jwt_access');
+  try {
+    const response = await fetch(`http://localhost:8000/api/items/${id}/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // your JWT token
+      },
+      body: JSON.stringify({
+        title: editName,
+        swap: editSwapRequest,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update item');
+    }
+
+    const updatedItem = await response.json();
+
+    // Update state with the updated item
+    const updatedItems = items.map(item =>
+      item.id === id ? updatedItem : item
     );
+    setItems(updatedItems);
     setEditingItemId(null);
-  };
+  } catch (error) {
+    console.error('Error updating item:', error);
+  }
+};
+
+
 
   const handleToggleComment = (id: number) => {
     setShowCommentInput(prev => ({
@@ -127,28 +168,42 @@ const ProfilePage: React.FC = () => {
     }));
   };
 
-  const handleSubmitComment = (id: number) => {
-    if (commentText[id]?.trim()) {
-      setItems(prevItems =>
-        prevItems.map(item =>
-          item.id === id
-            ? {
-                ...item,
-                comments: item.comments + 1,
-              }
-            : item
-        )
-      );
-      setCommentText(prev => ({
-        ...prev,
-        [id]: '',
-      }));
-      setShowCommentInput(prev => ({
-        ...prev,
-        [id]: false,
-      }));
+  const handleSubmitComment = async (id: number) => {
+    const token = localStorage.getItem('jwt_access');
+    const text = commentText[id]?.trim();
+    if (!token || !text) return;
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/items/${id}/comments/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: text })
+      });
+
+      if (res.ok) {
+        const newComment = await res.json(); // Assuming the new comment is returned in the response
+
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === id
+              ? { ...item, comments: [...item.comments, newComment] } // Add the new comment to the array
+              : item
+          )
+        );
+        setCommentText(prev => ({ ...prev, [id]: '' }));
+        // Keep comment input visible after adding the comment
+        setShowCommentInput(prev => ({ ...prev, [id]: true }));
+      } else {
+        console.error("Failed to submit comment");
+      }
+    } catch (err) {
+      console.error("Error submitting comment", err);
     }
   };
+
   const handleToggleDetails = (id: number) => {
     setShowDetails(prev => ({
       ...prev,
@@ -225,7 +280,7 @@ const ProfilePage: React.FC = () => {
         <div style={styles.itemList}>
           {items.map(item => (
             <div key={item.id} style={styles.item}>
-              <img src={item.image} alt={item.name} style={styles.itemImage} />
+              <img src={item.image} alt={item.title} style={styles.itemImage} />
               <div style={styles.itemDetails}>
                 {editingItemId === item.id ? (
                   <>
@@ -243,43 +298,93 @@ const ProfilePage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <p style={styles.itemName}>{item.name}</p>
-                    <p style={styles.swapRequest}>{item.swapRequest}</p>
+                    <p style={styles.itemName}>{item.title}</p>
+                    <p style={styles.swapRequest}>swap for : {item.swap}</p>
                   </>
                 )}
 
                 <div style={styles.actions}>
                   <a href="#"  onClick={() => handleEdit(item)} style={styles.editButton}><FaEdit /></a>
                   <a href="#"  onClick={() => handleDelete(item.id)} style={styles.editButton}><FaTrash /></a>
-                  <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleLike(item.id)}>
+                  <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleLike(item.id, item.liked)}>
                     {item.liked ? <FaHeart color="red" /> : <FaRegHeart />}
-                    <span style={{ marginLeft: '0.3rem' }}>{item.likes}</span>
+                    <span style={{ marginLeft: '0.3rem' }}>{item.like_count}</span>
                   </div>
-                  <span
-                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ...styles.icon }}
-                    onClick={() => handleToggleComment(item.id)}
-                  >
+                  <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ...styles.icon }}
+                    onClick={() => handleToggleComment(item.id)}>
                     <FaComments style={{ marginRight: '5px' }} />
-                    {item.comments}
                   </span>
-
+                  
                   <span
-                    style={{ ...styles.icon, cursor: 'pointer' }}
+                    style={{ ...styles.icon, cursor: 'pointer', color: "#6b6e60" }}
                     onClick={() => handleToggleDetails(item.id)}
-                  >
+                    >
                     เพิ่มเติม
                   </span>
                 </div>
                 {showDetails[item.id] && (
-                  <div style={{ marginTop: '1rem', textAlign: 'left' }}>
-                    <p>{item.description}</p>
+              <div style={{ marginTop: '1rem', textAlign: 'left' }}>
+                <p>{item.description}</p>
+              </div>
+            )}
+
+            {showCommentInput[item.id] && (
+              <div style={{
+                marginTop: '0.5rem',
+                textAlign: 'left',
+                background: '#f4f4f4',
+                padding: '0.5rem',
+                borderRadius: '5px',
+                display: 'flex',
+                flexDirection: 'column', // Ensures comments are stacked
+                gap: '0.3rem', // Adds space between comments
+              }}>
+                {item.comments.map((comment: any) => (
+                  <div key={comment.id} style={{
+                    padding: '0.5rem',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '5px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Adds subtle shadow
+                  }}>
+                    <strong>{comment.user}:</strong> {comment.content}
                   </div>
-                )}
+                ))}
+              </div>
+            )}
+
+            {showCommentInput[item.id] && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <input
+                  type="text"
+                  placeholder="เขียนคอมเมนต์..."
+                  value={commentText[item.id] || ''}
+                  onChange={(e) => handleCommentChange(item.id, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '5px',
+                    border: '1px solid #ccc',
+                    marginBottom: '0.5rem',
+                  }}
+                />
+                <button
+                  onClick={() => handleSubmitComment(item.id)}
+                  style={{
+                    padding: '0.3rem 0.7rem',
+                    border: 'none',
+                    borderRadius: '5px',
+                    backgroundColor: '#1a1a2e',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ส่ง
+                </button>
+              </div>
+            )}
                 <div>
                   
-                  {item.commentList.map((cmt, index) => (
-                    <p key={index} style={{ fontSize: '0.8rem', margin: '0.2rem 0' }}>💬 {cmt}</p>
-                  ))}
+                  
                 </div>
               </div>
             </div>

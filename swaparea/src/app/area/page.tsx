@@ -1,119 +1,74 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { FaHome, FaSearch, FaShoppingCart, FaUser , FaRegHeart,FaHeart, FaComments} from 'react-icons/fa';
-
-const initialItems = [
-  {
-    id: 1,
-    name: "เสื้อยืดสีขาว size L",
-    swapRequest: "แลก: เสื้อยืดสีดำ size M",
-    image: "https://happeningandfriends.com/uploads/happening/products/59/005884/เสื้อยึด-ไก่.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 2,
-    name: "กางเกงวอร์ม",
-    swapRequest: "แลก: กางเกงยีนส์",
-    image: "https://d29c1z66frfv6c.cloudfront.net/pub/media/catalog/product/large/3ce059764171988df3bc62af318fa25da33cce63_xxl-1.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 3,
-    name: "รองเท้าผ้าใบ size 38",
-    swapRequest: "แลก: รองเท้าผ้าใบ size 36",
-    image: "https://www.jdsports.co.th/cdn/shop/files/jd_MR530SG_b.jpg?crop=region&crop_height=3039&crop_left=1&crop_top=0&crop_width=4284&v=1726220188&width=4288",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 4,
-    name: "ตู้เย็น",
-    swapRequest: "แลก: กระเป๋าเป้สีน้ำตาล",
-    image: "https://www.dohome.co.th/media/catalog/product/1/0/10322410_mc_1200_1.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 5,
-    name: "กระเป๋าสีน้ำตาล",
-    swapRequest: "แลก: กระเป๋าสะพายข้าง",
-    image: "https://today-obs.line-scdn.net/0hvgH4EilqKUh1TThQ1CRWH00bJTlGKzNBVy5mLARFIHwIYWtMSyt6K1IadGQIem8fVShhKVIdInhcKDsYGg/w644",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 6,
-    name: "ผ้าห่ม",
-    swapRequest: "แลก: ผ้าปูที่นอน",
-    image: "https://darling.co.th/wp-content/uploads/2021/11/DC_Export-3595-scaled.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 7,
-    name: "เสื้อยืดสีดำ size L",
-    swapRequest: "แลก: เสื้อเชิ้ตสีฟ้า size ศ",
-    image: "https://c.min.ms/s/storefile/91/itemgallery/c_1682407831.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 8,
-    name: "กางเกงยีนส์",
-    swapRequest: "แลก: กางเกงช้าง",
-    image: "https://wrangler.co.th/cdn/shop/files/8859286674731_03_7a38eeb5-510c-447e-a207-5004babafcc7_800x.jpg?v=1718022928",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-];
+import { FaHome, FaSearch, FaShoppingCart, FaUser, FaRegHeart, FaHeart, FaComments } from 'react-icons/fa';
 
 const AreaPage: React.FC = () => {
-  const [items, setItems] = useState(initialItems);
+  const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const token = localStorage.getItem('jwt_access');
+        console.log("Token:", token);
+        const res = await fetch("http://127.0.0.1:8000/api/items/", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch items");
+        const data = await res.json();
+
+        setItems(data);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
   const [showCommentInput, setShowCommentInput] = useState<{ [key: number]: boolean }>({});
   const [commentText, setCommentText] = useState<{ [key: number]: string }>({});
   const [showDetails, setShowDetails] = useState<{ [key: number]: boolean }>({});
 
-  const handleLike = (id: number) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id
-          ? {
-              ...item,
-              likes: item.liked ? item.likes - 1 : item.likes + 1,
-              liked: !item.liked,
-            }
-          : item
-      )
-    );
+  const handleLike = async (itemId: number, liked: boolean) => {
+    const token = localStorage.getItem('jwt_access');
+    console.log("Token:", token);
+    if (!token) return;
+
+    const url = liked
+      ? `http://localhost:8000/api/items/${itemId}/unlike/`
+      : `http://localhost:8000/api/items/${itemId}/like/`;
+
+    try {
+      const res = await fetch(url, {
+        method: liked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  like_count: item.liked ? item.like_count - 1 : item.like_count + 1,
+                  liked: !item.liked,
+                }
+              : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error toggling like", err);
+    }
   };
+
   const router = useRouter();
   const handleHome = () => {
     router.push('/home');
@@ -139,26 +94,39 @@ const AreaPage: React.FC = () => {
     }));
   };
 
-  const handleSubmitComment = (id: number) => {
-    if (commentText[id]?.trim()) {
-      setItems(prevItems =>
-        prevItems.map(item =>
-          item.id === id
-            ? {
-                ...item,
-                comments: item.comments + 1,
-              }
-            : item
-        )
-      );
-      setCommentText(prev => ({
-        ...prev,
-        [id]: '',
-      }));
-      setShowCommentInput(prev => ({
-        ...prev,
-        [id]: false,
-      }));
+  const handleSubmitComment = async (id: number) => {
+    const token = localStorage.getItem('jwt_access');
+    const text = commentText[id]?.trim();
+    if (!token || !text) return;
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/items/${id}/comments/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: text })
+      });
+
+      if (res.ok) {
+        const newComment = await res.json(); // Assuming the new comment is returned in the response
+
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === id
+              ? { ...item, comments: [...item.comments, newComment] } // Add the new comment to the array
+              : item
+          )
+        );
+        setCommentText(prev => ({ ...prev, [id]: '' }));
+        // Keep comment input visible after adding the comment
+        setShowCommentInput(prev => ({ ...prev, [id]: true }));
+      } else {
+        console.error("Failed to submit comment");
+      }
+    } catch (err) {
+      console.error("Error submitting comment", err);
     }
   };
 
@@ -191,24 +159,22 @@ const AreaPage: React.FC = () => {
       <main style={styles.swapArea}>
         {items.map((item) => (
           <div key={item.id} style={styles.itemCard}>
-            <img src={item.image} alt={item.name} style={styles.itemImage} />
-            <p style={styles.itemName}>{item.name}</p>
-            <p style={styles.swapRequest}>{item.swapRequest}</p>
+            <img src={item.image} alt={item.title} style={styles.itemImage} />
+            <p style={styles.itemName}>{item.title}</p>
+            <p style={styles.swapRequest}>swap for : {item.swap}</p>
             <div style={styles.actions}>
               <button style={styles.addButton}>+</button>
-            <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleLike(item.id)}>
-                                {item.liked ? <FaHeart color="red" /> : <FaRegHeart />}
-                                <span style={{ marginLeft: '0.3rem' }}>{item.likes}</span>
-            </div>
-            <span
-                                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ...styles.icon }}
-                                onClick={() => handleToggleComment(item.id)}
-                              >
-                                <FaComments style={{ marginRight: '5px' }} />
-                                {item.comments}
-                              </span>
-            <span
-                style={{ ...styles.icon, cursor: 'pointer' ,color:"#6b6e60"}}
+              <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleLike(item.id, item.liked)}>
+                {item.liked ? <FaHeart color="red" /> : <FaRegHeart />}
+                <span style={{ marginLeft: '0.3rem' }}>{item.like_count}</span>
+              </div>
+              <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ...styles.icon }}
+                onClick={() => handleToggleComment(item.id)}>
+                <FaComments style={{ marginRight: '5px' }} />
+              </span>
+
+              <span
+                style={{ ...styles.icon, cursor: 'pointer', color: "#6b6e60" }}
                 onClick={() => handleToggleDetails(item.id)}
               >
                 เพิ่มเติม
@@ -218,6 +184,30 @@ const AreaPage: React.FC = () => {
             {showDetails[item.id] && (
               <div style={{ marginTop: '1rem', textAlign: 'left' }}>
                 <p>{item.description}</p>
+              </div>
+            )}
+
+            {showCommentInput[item.id] && (
+              <div style={{
+                marginTop: '0.5rem',
+                textAlign: 'left',
+                background: '#f4f4f4',
+                padding: '0.5rem',
+                borderRadius: '5px',
+                display: 'flex',
+                flexDirection: 'column', // Ensures comments are stacked
+                gap: '0.3rem', // Adds space between comments
+              }}>
+                {item.comments.map((comment: any) => (
+                  <div key={comment.id} style={{
+                    padding: '0.5rem',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '5px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Adds subtle shadow
+                  }}>
+                    <strong>{comment.user}:</strong> {comment.content}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -256,7 +246,8 @@ const AreaPage: React.FC = () => {
       </main>
     </div>
   );
-}
+};
+
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {

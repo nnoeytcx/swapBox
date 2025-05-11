@@ -10,22 +10,50 @@ const Page: React.FC = () => {
     router.push('/home');
   };
 
+
+const onLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  event.preventDefault();
+
+  const form = event.target as HTMLFormElement;
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch('http://localhost:8000/api/token/', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
+
+    const data = await response.json();
+    localStorage.setItem('jwt_access', data.access);
+    alert("Login success!");
+    router.push('/home');
+  } catch (error) {
+    alert("Your username/password are incorrect!");
+  }
+};
+
+
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Swap Box</h1>
 
       <div style={styles.formContainer}>
-        <form style={styles.form}>
+        <form style={styles.form} onSubmit={onLogin}>
           <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="email">Email</label>
-            <input style={styles.input} type="email" id="email" name="email" required />
+            <label style={styles.label} htmlFor="username">Username</label>
+            <input style={styles.input} type="text" id="username" name="username" required />
           </div>
           <div style={styles.inputGroup}>
             <label style={styles.label} htmlFor="password">Password</label>
             <input style={styles.input} type="password" id="password" name="password" required />
             <a href="#" style={styles.forgotPassword}>Forgot password?</a>
           </div>
-          <button style={styles.signInButton} onClick={handleLogin} type="submit">Sign in</button>
+          <button style={styles.signInButton} type="submit">Sign in</button>
           <button style={styles.googleButton} type="button">Sign in with Google</button>
         </form>
         <p style={styles.signUpText}>
