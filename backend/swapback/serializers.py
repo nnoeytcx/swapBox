@@ -7,7 +7,7 @@ from .models import User, Item, Like, Comment, Interest, Chat, Message
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'bio', 'avatar_url', 'created_at']
+        fields = ['id', 'username', 'email', 'bio', 'avatar', 'created_at']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()  # or use a nested serializer
@@ -22,10 +22,12 @@ class ItemSerializer(serializers.ModelSerializer):
     like_count = serializers.IntegerField(source='likes.count', read_only=True)
     liked = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True, source='comment_set', default=[])
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+
 
     class Meta:
         model = Item
-        fields = ['id', 'title', 'swap', 'description', 'status', 'image', 'user', 'image_url', 'like_count', 'liked', 'comments']
+        fields = ['id', 'title', 'swap', 'owner', 'description', 'status', 'image', 'user', 'image_url', 'like_count', 'liked', 'comments']
 
     def get_image_url(self, obj):
         if obj.image:
@@ -46,22 +48,29 @@ class LikeSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'item', 'created_at']
 
 class InterestSerializer(serializers.ModelSerializer):
+    item = ItemSerializer(read_only=True) 
+    
     class Meta:
         model = Interest
         fields = ['id', 'user', 'item', 'created_at']
 
 class ChatSerializer(serializers.ModelSerializer):
+    user1 = UserSerializer()
+    user2 = UserSerializer()
+    item = ItemSerializer()
+
     class Meta:
         model = Chat
         fields = ['id', 'user1', 'user2', 'item', 'created_at']
 
+
 class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
     sender = UserSerializer(read_only=True)
 
     class Meta:
         model = Message
-        fields = ['id', 'chat', 'sender', 'content', 'created_at']
-
+        fields = ['id', 'chat', 'sender', 'sender_username', 'content', 'created_at']
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)

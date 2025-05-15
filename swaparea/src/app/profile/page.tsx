@@ -8,17 +8,83 @@ import { FaHome, FaSearch, FaShoppingCart, FaUser , FaEdit, FaTrash, FaRegHeart,
 const ProfilePage: React.FC = () => {
 
   
-  const user = {
-    name: "Jennie Ruby Jen",
-    email: "jennierubyjen@gmail.com",
-  };
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileImage(imageUrl);
+  const [user, setUser] = useState<{ username: string; email: string } | null>(null);
+  useEffect(() => {
+  const token = localStorage.getItem('jwt_access');
+
+  const fetchUser = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/user/", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch user");
+    const data = await res.json();
+    setUser({ username: data.username, email: data.email });
+    setProfileImage(data.avatar ?? '');
+    console.log('user pic is '+data.avatar);
+
+
+ // Use avatar from backend
+  } catch (error) {
+    console.error("Error fetching user:", error);
+  }
+};
+
+
+  const fetchItems = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/user-items/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch items");
+      const data = await res.json();
+      setItems(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      setLoading(false);
     }
   };
+
+  fetchUser();
+  fetchItems();
+}, []);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const token = localStorage.getItem('jwt_access');
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/user/avatar/", {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload profile picture");
+    }
+
+    const data = await response.json();
+    // Set the new profile image URL from the backend response
+    setProfileImage(data.avatar); 
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+  }
+};
+
 
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -53,8 +119,14 @@ const ProfilePage: React.FC = () => {
   const [editSwapRequest, setEditSwapRequest] = useState('');
   const [commentText, setCommentText] = useState<{ [key: number]: string }>({});
   const [showDetails, setShowDetails] = useState<{ [key: number]: boolean }>({});
-  const [profileImage, setProfileImage] = useState('https://cdn-icons-png.flaticon.com/512/149/149071.png');
+  const [profileImage, setProfileImage] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
+  const profileImageurl = profileImage
+  ? (profileImage.startsWith('http') ? profileImage : `http://localhost:8000${profileImage}`)
+  : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+
+
 
   const router = useRouter();
 
@@ -110,9 +182,30 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this item?");
+  if (!confirmDelete) return;
+  const token = localStorage.getItem('jwt_access');
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/items/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete item');
+    }
+
+    // If backend deletion was successful, remove from frontend state
     setItems(prevItems => prevItems.filter(item => item.id !== id));
-  };
+  } catch (error) {
+    console.error('Error deleting item:', error);
+  }
+};
+
 
   const handleEdit = (item: any) => {
     setEditingItemId(item.id);
@@ -223,6 +316,7 @@ const ProfilePage: React.FC = () => {
           </div>
           <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart/></a>
           <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
+          <a href="#" onClick={handleChat} style={styles.navLink}>chat</a>
         </nav>
       </header>
       <div style={{
@@ -234,7 +328,7 @@ const ProfilePage: React.FC = () => {
       }}>
       <div style={{ marginBottom: '20px' }}>
         <img
-          src={profileImage}
+          src={profileImageurl}
           alt="Profile"
           style={{
             width: '100px',
@@ -274,8 +368,12 @@ const ProfilePage: React.FC = () => {
     </div>
       <main style={styles.main}>
         <div style={styles.profile}>
-          <h2 style={styles.username}>{user.name}</h2>
-          <p style={styles.email}>{user.email}</p>
+          {user && (
+            <>
+              <h2 style={styles.username}>{user.username}</h2>
+              <p style={styles.email}>{user.email}</p>
+            </>
+          )}
         </div>
         <div style={styles.itemList}>
           {items.map(item => (

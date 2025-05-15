@@ -30,4 +30,12 @@ urlpatterns = [
     path('items/<int:item_id>/unlike/', unlike_item),
     path('items/<int:item_id>/comments/', CommentListCreateView.as_view(), name='item-comments'),
     path('api/items/<int:item_id>/comments/', post_comment),
+    path('user/', current_user_info),
+    path('user/avatar/', AvatarUploadView.as_view(), name='avatar-upload'),
+    path('items/<int:item_id>/interest/', AddInterestView.as_view(), name='add-interest'),
+    path('interests/', get_interested_items, name='interested-items'),
+    path('chat/start/', StartChatView.as_view()),
+    path('chat/<int:chat_id>/messages/', ChatMessagesView.as_view()),
+    path('chat/<int:chat_id>/message/', SendMessageView.as_view()),
+    path('chat/', UserChatListView.as_view()),
 ]

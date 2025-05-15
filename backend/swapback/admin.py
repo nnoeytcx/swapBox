@@ -5,12 +5,12 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ('id', 'username', 'email', 'bio', 'avatar_url', 'date_joined')
+    list_display = ('id', 'username', 'email', 'bio', 'avatar', 'date_joined')
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('Additional Info', {'fields': ('bio', 'avatar_url')}),
+        ('Additional Info', {'fields': ('bio', 'avatar')}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('Additional Info', {'fields': ('bio', 'avatar_url')}),
+        ('Additional Info', {'fields': ('bio', 'avatar')}),
     )
     ordering = ('-date_joined',)
 

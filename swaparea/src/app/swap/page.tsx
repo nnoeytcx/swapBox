@@ -74,7 +74,9 @@ const SwapPage: React.FC = () => {
   const handleHome = () => router.push('/home');
   const handleProfile = () => router.push('/profile');
   const handleList = () => router.push('/list');
-
+  const handleChat = () => {
+    router.push('/chat');
+  };
   return (
     <div style={styles.container}>
       <header style={styles.header}>
@@ -91,6 +93,7 @@ const SwapPage: React.FC = () => {
                 </div>
                 <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
                 <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
+                <a href="#" onClick={handleChat} style={styles.navLink}>chat</a>
           </nav>
       </header>
       <main style={styles.main}>

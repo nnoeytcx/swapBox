@@ -1,78 +1,84 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { FaHome, FaSearch, FaShoppingCart, FaUser , FaCommentDots} from 'react-icons/fa';
-
-const initialItems = [
-  {
-    id: 1,
-    name: "เสื้อยืดสีขาว size L",
-    swapRequest: "แลก: เสื้อยืดสีดำ size M",
-    image: "https://happeningandfriends.com/uploads/happening/products/59/005884/เสื้อยึด-ไก่.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 2,
-    name: "กางเกงวอร์ม",
-    swapRequest: "แลก: กางเกงยีนส์",
-    image: "https://d29c1z66frfv6c.cloudfront.net/pub/media/catalog/product/large/3ce059764171988df3bc62af318fa25da33cce63_xxl-1.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 3,
-    name: "รองเท้าผ้าใบ size 38",
-    swapRequest: "แลก: รองเท้าผ้าใบ size 36",
-    image: "https://www.jdsports.co.th/cdn/shop/files/jd_MR530SG_b.jpg?crop=region&crop_height=3039&crop_left=1&crop_top=0&crop_width=4284&v=1726220188&width=4288",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-  {
-    id: 4,
-    name: "ตู้เย็น",
-    swapRequest: "แลก: กระเป๋าเป้สีน้ำตาล",
-    image: "https://www.dohome.co.th/media/catalog/product/1/0/10322410_mc_1200_1.jpg",
-    description: "หรือแลกกับอะไรก็ได้",
-    likes: 0,
-    comments: 0,
-    commentList: [],
-    liked: false,
-  },
-];
+import { FaHome, FaSearch, FaShoppingCart, FaUser, FaCommentDots } from 'react-icons/fa';
 
 const ListPage: React.FC = () => {
-  const [items, setItems] = useState(initialItems);
+  const [items, setItems] = useState<any[]>([]);
   const [showCommentInput, setShowCommentInput] = useState<{ [key: number]: boolean }>({});
   const [commentText, setCommentText] = useState<{ [key: number]: string }>({});
   const [showDetails, setShowDetails] = useState<{ [key: number]: boolean }>({});
 
   const router = useRouter();
-  const handleHome = () => {
-    router.push('/home');
+
+  const fetchInterestedItems = async () => {
+    try {
+      const token = localStorage.getItem('jwt_access');
+      const res = await fetch("http://127.0.0.1:8000/api/interests/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch interests");
+      const data = await res.json();
+      setItems(data);
+    } catch (error) {
+      console.error("Error fetching interested items:", error);
+    }
   };
-  const handleChat = () => {
+
+  useEffect(() => {
+    fetchInterestedItems();
+  }, []);
+
+  const handleHome = () => router.push('/home');
+  const handleProfile = () => router.push('/profile');
+  const handleChatpage = () => {
     router.push('/chat');
   };
-  const handleProfile = () => {
-    router.push('/profile');
-  };
-  
+
   const handleToggleDetails = (id: number) => {
     setShowDetails(prev => ({
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  // ✅ Start chat API call
+  
+  const startChat = async (user2: number, itemId: number) => {
+  const token = localStorage.getItem("jwt_access");
+
+  console.log("Attempting to start chat with:", { user2, itemId });
+
+  const res = await fetch("http://127.0.0.1:8000/api/chat/start/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      user2: user2,
+      item: itemId,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text(); // Show backend error
+    console.error("Failed to start chat:", errorText);
+    throw new Error("Failed to start chat");
+  }
+
+  const data = await res.json();
+  console.log("Chat created:", data);
+  return data;
+};
+
+
+  // ✅ Triggered when chat icon is clicked
+  const handleChat = (user2Id: number, itemId: number) => {
+    startChat(user2Id, itemId);
   };
 
   return (
@@ -89,40 +95,60 @@ const ListPage: React.FC = () => {
               style={styles.searchInput}
             />
           </div>
-          <a href="#" onClick={handleChat} style={styles.navLink}><FaShoppingCart /></a>
+          <a href="#" onClick={() => router.push('/chat')} style={styles.navLink}><FaShoppingCart /></a>
           <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
+          <a href="#" onClick={handleChatpage} style={styles.navLink}>chat</a>
         </nav>
       </header>
+
       <h2 style={styles.title}>My List</h2>
       <main style={styles.swapArea}>
-        {items.map((item) => (
-          <div key={item.id} style={styles.card}>
-             <img src={item.image} alt={item.name} style={styles.itemImage} />
-             <div style={styles.itemInfo}>
-               <p style={styles.itemName}>{item.name}</p>
-               <p style={styles.itemSwap}>{item.swapRequest}</p>
-             </div>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '18rem', marginTop: '0.5rem' }}>
-                      <span
-                        style={{ ...styles.icon, cursor: 'pointer' }}
-                        onClick={() => handleToggleDetails(item.id)}
-                      >
-                        เพิ่มเติม
-                      </span>
-                      <FaCommentDots onClick={handleChat} size={20} />
-             </div>
-             {showDetails[item.id] && (
+        {items.map((interest) => (
+          <div key={interest.id} style={styles.card}>
+            <img src={interest.item.image} alt={interest.item.title} style={styles.itemImage} />
+            <div style={styles.itemInfo}>
+              <p style={styles.itemName}>{interest.item.title}</p>
+              <p style={styles.itemSwap}>{interest.item.swap}</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '18rem', marginTop: '0.5rem' }}>
+              <span
+                style={{ ...styles.icon, cursor: 'pointer' }}
+                onClick={() => handleToggleDetails(interest.id)}
+              >
+                เพิ่มเติม
+              </span>
+              <FaCommentDots
+                onClick={() => {
+                  const ownerId = interest.item.user?.id; // Use `user.id` instead of `owner`
+                  const itemId = interest.item.id;
+
+                  console.log("Chat Icon Clicked:", { owner: ownerId, itemId });
+
+                  if (ownerId && itemId) {
+                    startChat(ownerId, itemId)
+                      .then(() => router.push('/chat'))
+                      .catch((err) => console.error(err));
+                  } else {
+                    console.warn("Invalid item owner or item id", interest);
+                  }
+                }}
+                size={20}
+                style={{ cursor: "pointer" }}
+              />
+
+            </div>
+            {showDetails[interest.id] && (
               <div style={{ marginTop: '1rem', textAlign: 'left' }}>
-                <p>{item.description}</p>
+                <p>{interest.item.description}</p>
               </div>
             )}
           </div>
-           
         ))}
       </main>
     </div>
   );
-}
+};
+
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {

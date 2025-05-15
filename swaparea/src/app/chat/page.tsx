@@ -1,57 +1,138 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from   'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import { FaHome, FaPaperclip, FaImage, FaShoppingCart } from 'react-icons/fa';
 
 interface Message {
+  id: number;
   text?: string;
   file?: string;
-  sender: "me" | "them";
+  sender: { id: number; username: string };
+  content: string;
+  created_at: string;
 }
 
-const users = ["Jisoo", "Lisa", "Rose"];
+interface Chat {
+  id: number;
+  user1: { id: number; username: string };
+  user2: { id: number; username: string };
+  item:  { id: number; title: string };
+  created_at: string;
+}
 
 const ChatPage: React.FC = () => {
-  const [chats, setChats] = useState<{ [user: string]: Message[] }>({});
+  const [chatList, setChatList] = useState<Chat[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
-  const handleSendMessage = () => {
-    if (!selectedChat) return;
 
-    if (input.trim() !== "" || filePreview) {
-      const newMessage: Message = {
-        text: input.trim() || undefined,
-        file: filePreview || undefined,
-        sender: "me",
-      };
+  useEffect(() => {
+  const token = localStorage.getItem('jwt_access');
+  if (!token) {
+    // No token, user not logged in
+    return;
+  }
 
-      setChats((prev) => ({
-        ...prev,
-        [selectedChat]: [...(prev[selectedChat] || []), newMessage],
-      }));
-
-      setInput("");
-      setFilePreview(null);
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/user/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to fetch user info');
+      const userData = await res.json();
+      localStorage.setItem('user_id', userData.id.toString());
+      setCurrentUserId(userData.id);
+    } catch (error) {
+      console.error(error);
     }
   };
+
+  fetchUser();
+}, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('jwt_access');
+    const userId = localStorage.getItem('user_id');
+    console.log("Loaded user ID from localStorage:", userId);
+
+    if (userId) {
+      setCurrentUserId(Number(userId));
+    }
+
+    const fetchChats = async () => {
+      const res = await fetch("http://127.0.0.1:8000/api/chat/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      setChatList(data);
+    };
+
+    fetchChats();
+  }, []);
+
+  const handleChatSelect = async (chatId: number) => {
+    setSelectedChatId(chatId);
+    const token = localStorage.getItem('jwt_access');
+    const res = await fetch(`http://127.0.0.1:8000/api/chat/${chatId}/messages/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setMessages(data);
+
+    const chat = chatList.find(c => c.id === chatId);
+    if (chat && currentUserId !== null) {
+      const recipient = chat?.user1?.id === currentUserId ? chat?.user2?.username : chat?.user1?.username;
+      const itemName = typeof chat.item === "object" ? chat.item.title : "Unknown Item";
+      setSelectedChat(`${recipient} (${itemName})`);
+    }
+  };
+
+  const handleSendMessage = async () => {
+  if (!selectedChatId || input.trim() === "" || currentUserId === null) return;
+
+  const token = localStorage.getItem('jwt_access');
+  const res = await fetch(`http://127.0.0.1:8000/api/chat/${selectedChatId}/message/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      content: input.trim(),
+    }),
+  });
+
+  const newMsg = await res.json();
+
+  // Ensure sender ID is present for alignment logic
+  const msgWithSender = {
+    ...newMsg,
+    sender: { ...newMsg.sender, id: currentUserId },
+  };
+
+  setMessages((prev) => [...prev, msgWithSender]);
+  setInput("");
+};
+
+
   const router = useRouter();
-    const handleHome = () => {
-      router.push('/home');
-    };
-    const handleList = () => {
-      router.push('/list');
-    };
+  const handleHome = () => router.push('/home');
+  const handleList = () => router.push('/list');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result as string);
-      };
+      reader.onloadend = () => setFilePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -65,36 +146,44 @@ const ChatPage: React.FC = () => {
           <a href="#" onClick={handleHome} style={styles.navLink}><FaHome /></a>
         </nav>
         <ul style={styles.chatList}>
-          {users.map((user) => (
-            <li
-              key={user}
-              style={{
-                ...styles.chatItem,
-                backgroundColor: selectedChat === user ? "#5d1a6c" : "transparent",
-              }}
-              onClick={() => setSelectedChat(user)}
-            >
-              {user}
-            </li>
-          ))}
+          {currentUserId !== null && chatList.map((chat) => {
+  const isCurrentUserUser1 = chat.user1?.id === currentUserId;
+  const username = isCurrentUserUser1 ? chat.user2?.username : chat.user1?.username;
+  const itemName = typeof chat.item === "object" ? chat.item.title : "Unknown Item";
+
+  return (
+    <li
+      key={chat.id}
+      onClick={() => handleChatSelect(chat.id)}
+      style={{
+        ...styles.chatItem,
+        backgroundColor: selectedChatId === chat.id ? "#5d1a6c" : "transparent",
+      }}
+    >
+      {username ?? "Unknown"} ({itemName})
+    </li>
+  );
+})}
+
         </ul>
       </aside>
 
-      {/* Chat window */}
-      {selectedChat ? (
+      {/* Chat Window */}
+      {selectedChatId !== null ? (
         <main style={styles.chatWindow}>
           <h2 style={styles.chatTitle}>Chat with {selectedChat}</h2>
           <div style={styles.messages}>
-            {(chats[selectedChat] || []).map((msg, index) => (
+            {messages.map((msg, index) => (
               <div
                 key={index}
                 style={{
                   ...styles.message,
-                  alignSelf: msg.sender === "me" ? "flex-end" : "flex-start",
-                  backgroundColor: msg.sender === "me" ? "#4cc9f0" : "#3a0ca3",
+                  alignSelf: msg.sender?.id === currentUserId ? "flex-end" : "flex-start",
+                  backgroundColor: msg.sender?.id === currentUserId ? "#4cc9f0" : "#3a0ca3",
+                  
                 }}
               >
-                {msg.text && <p>{msg.text}</p>}
+                <p>{msg.content}</p>
                 {msg.file && (
                   <img
                     src={msg.file}
@@ -110,7 +199,6 @@ const ChatPage: React.FC = () => {
             )}
           </div>
 
-          {/* Input */}
           <div style={styles.inputContainer}>
             <label style={styles.iconButton}>
               <FaImage />
@@ -149,6 +237,7 @@ const ChatPage: React.FC = () => {
     </div>
   );
 };
+
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {

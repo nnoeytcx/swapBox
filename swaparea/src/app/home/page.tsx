@@ -20,6 +20,9 @@ const HomePage: React.FC = () => {
   const handleHome = () => {
     router.push('/home');
   };
+  const handleChat = () => {
+    router.push('/chat');
+  };
   return (
     <div style={styles.container}>
       <header style={styles.header}>
@@ -36,6 +39,7 @@ const HomePage: React.FC = () => {
         </div>
         <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
         <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
+        <a href="#" onClick={handleChat} style={styles.navLink}>chat</a>
         </nav>
       </header>
       <main style={styles.main}>

@@ -7,6 +7,26 @@ import { FaHome, FaSearch, FaShoppingCart, FaUser, FaRegHeart, FaHeart, FaCommen
 const AreaPage: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('jwt_access');
+      const res = await fetch("http://localhost:8000/api/user/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const userData = await res.json();
+        setCurrentUser(userData);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -79,6 +99,9 @@ const AreaPage: React.FC = () => {
   const handleProfile = () => {
     router.push('/profile');
   };
+  const handleChat = () => {
+    router.push('/chat');
+  };
 
   const handleToggleComment = (id: number) => {
     setShowCommentInput(prev => ({
@@ -86,6 +109,38 @@ const AreaPage: React.FC = () => {
       [id]: !prev[id],
     }));
   };
+
+const handleAddlist = async (itemId: number) => {
+  const token = localStorage.getItem('jwt_access');
+
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/items/${itemId}/interest/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    // ✅ Show message from backend no matter what status
+    if (data.message) {
+      alert(data.message);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to add to interest list");
+    }
+
+    console.log("Interest added:", data.message);
+  } catch (error: any) {
+    console.error("Error:", error.message);
+    alert(error.message);
+  }
+};
+
+
+
 
   const handleCommentChange = (id: number, text: string) => {
     setCommentText(prev => ({
@@ -153,6 +208,7 @@ const AreaPage: React.FC = () => {
           </div>
           <a href="#" onClick={handleList} style={styles.navLink}><FaShoppingCart /></a>
           <a href="#" onClick={handleProfile} style={styles.navLink}><FaUser /></a>
+          <a href="#" onClick={handleChat} style={styles.navLink}>chat</a>
         </nav>
       </header>
 
@@ -163,7 +219,7 @@ const AreaPage: React.FC = () => {
             <p style={styles.itemName}>{item.title}</p>
             <p style={styles.swapRequest}>swap for : {item.swap}</p>
             <div style={styles.actions}>
-              <button style={styles.addButton}>+</button>
+                <button style={styles.addButton} onClick={() => handleAddlist(item.id)}>+</button>
               <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleLike(item.id, item.liked)}>
                 {item.liked ? <FaHeart color="red" /> : <FaRegHeart />}
                 <span style={{ marginLeft: '0.3rem' }}>{item.like_count}</span>
