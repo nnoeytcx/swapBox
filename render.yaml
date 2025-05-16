@@ -1,24 +1,27 @@
 services:
+  services :
   - type: web
-    name: backend
-    env: docker
-    dockerfilePath: backend/Dockerfile
-    branch: main
-    plan: free
-    envVars:
-      - key: ENV_VAR_NAME
-        value: some_value
-    buildCommand: ""
-    startCommand: "python manage.py runserver 0.0.0.0:8000"
+    runtime: docker
+    name : swapbox-backend
+    plan : free
+    region : singapore
+    repo : https://github.com/nnoeytcx/swapBox.git
+    rootDir : backend
+    envVars :
+      - key : PORT
+        value : 8000
+      - key : DJANGO_SECRET_KEY
+        value : "django-insecure-m7c-yxg$z4pbvgd=f@1o_)vv&1daw99ff(a%_x^eg&w!4ynv#d"
+      - key : DEBUG
+        value : "False"
 
-  - type: web
-    name: frontend
-    env: docker
-    dockerfilePath: swaparea/Dockerfile
-    branch: main
-    plan: free
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://backend.onrender.com
-    buildCommand: "npm install"
-    startCommand: "npx next dev"
+  - type : web
+    runtime: docker
+    name : swapbox-frontend
+    plan : free
+    region : singapore
+    repo : https://github.com/nnoeytcx/swapBox.git
+    rootDir : swaparea
+    envVars :
+      - key : PORT
+        value : 80
