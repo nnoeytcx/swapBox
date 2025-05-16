@@ -1,11 +1,12 @@
 FROM node:slim
 
-WORKDIR /app
+WORKDIR /app/src
 
-COPY . .
+COPY ./src ./src
+COPY package.json package-lock.json ./  
 
 RUN npm install
 
 EXPOSE 3000
 
-CMD ["npx" , "next" , "dev"]
+CMD ["npx", "next", "dev"]
