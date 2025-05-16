@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: swapback
+    env: docker
+    plan: free
+    region: oregon
+    branch: main  # or your actual branch
+    dockerfilePath: backend/Dockerfile
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings

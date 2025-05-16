@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-m7c-yxg$z4pbvgd=f@1o_)vv&1daw99ff(a%_x^eg&w!4ynv#d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'swapback.User'
 
