@@ -43,7 +43,7 @@ const SwapPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/upload-item/', {
+      const res = await fetch('https://swapbox-backend.onrender.com/api/upload-item/', {
         method: 'POST',
         body: formData,
         headers: {

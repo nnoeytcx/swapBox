@@ -15,7 +15,7 @@ const ListPage: React.FC = () => {
   const fetchInterestedItems = async () => {
     try {
       const token = localStorage.getItem('jwt_access');
-      const res = await fetch("http://127.0.0.1:8000/api/interests/", {
+      const res = await fetch("https://swapbox-backend.onrender.com/api/interests/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,7 +52,7 @@ const ListPage: React.FC = () => {
 
   console.log("Attempting to start chat with:", { user2, itemId });
 
-  const res = await fetch("http://127.0.0.1:8000/api/chat/start/", {
+  const res = await fetch("https://swapbox-backend.onrender.com/api/chat/start/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

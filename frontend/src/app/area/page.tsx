@@ -12,7 +12,7 @@ const AreaPage: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('jwt_access');
-      const res = await fetch("http://localhost:8000/api/user/", {
+      const res = await fetch("https://swapbox-backend.onrender.com/api/user/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -32,7 +32,7 @@ const AreaPage: React.FC = () => {
       try {
         const token = localStorage.getItem('jwt_access');
         console.log("Token:", token);
-        const res = await fetch("http://127.0.0.1:8000/api/items/", {
+        const res = await fetch("https://swapbox-backend.onrender.com/api/items/", {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -59,8 +59,8 @@ const AreaPage: React.FC = () => {
     if (!token) return;
 
     const url = liked
-      ? `http://localhost:8000/api/items/${itemId}/unlike/`
-      : `http://localhost:8000/api/items/${itemId}/like/`;
+      ? `https://swapbox-backend.onrender.com/api/items/${itemId}/unlike/`
+      : `https://swapbox-backend.onrender.com/api/items/${itemId}/like/`;
 
     try {
       const res = await fetch(url, {
@@ -114,7 +114,7 @@ const handleAddlist = async (itemId: number) => {
   const token = localStorage.getItem('jwt_access');
 
   try {
-    const response = await fetch(`http://127.0.0.1:8000/api/items/${itemId}/interest/`, {
+    const response = await fetch(`https://swapbox-backend.onrender.com/api/items/${itemId}/interest/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -155,7 +155,7 @@ const handleAddlist = async (itemId: number) => {
     if (!token || !text) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/items/${id}/comments/`, {
+      const res = await fetch(`https://swapbox-backend.onrender.com/api/items/${id}/comments/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

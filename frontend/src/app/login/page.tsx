@@ -18,7 +18,7 @@ const onLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> =
   const formData = new FormData(form);
 
   try {
-    const response = await fetch('http://localhost:8000/api/token/', {
+    const response = await fetch('https://swapbox-backend.onrender.com/api/token/', {
       method: 'POST',
       body: formData,
     });

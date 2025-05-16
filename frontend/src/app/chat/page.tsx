@@ -40,7 +40,7 @@ const ChatPage: React.FC = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/user/', {
+      const res = await fetch('https://swapbox-backend.onrender.com/api/user/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,7 +67,7 @@ const ChatPage: React.FC = () => {
     }
 
     const fetchChats = async () => {
-      const res = await fetch("http://127.0.0.1:8000/api/chat/", {
+      const res = await fetch("https://swapbox-backend.onrender.com/api/chat/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -82,7 +82,7 @@ const ChatPage: React.FC = () => {
   const handleChatSelect = async (chatId: number) => {
     setSelectedChatId(chatId);
     const token = localStorage.getItem('jwt_access');
-    const res = await fetch(`http://127.0.0.1:8000/api/chat/${chatId}/messages/`, {
+    const res = await fetch(`https://swapbox-backend.onrender.com/api/chat/${chatId}/messages/`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -100,7 +100,7 @@ const ChatPage: React.FC = () => {
   if (!selectedChatId || input.trim() === "" || currentUserId === null) return;
 
   const token = localStorage.getItem('jwt_access');
-  const res = await fetch(`http://127.0.0.1:8000/api/chat/${selectedChatId}/message/`, {
+  const res = await fetch(`https://swapbox-backend.onrender.com/api/chat/${selectedChatId}/message/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -14,7 +14,7 @@ const ProfilePage: React.FC = () => {
 
   const fetchUser = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/user/", {
+    const res = await fetch("https://swapbox-backend.onrender.com/api/user/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -36,7 +36,7 @@ const ProfilePage: React.FC = () => {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/user-items/", {
+      const res = await fetch("https://swapbox-backend.onrender.com/api/user-items/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -65,7 +65,7 @@ const ProfilePage: React.FC = () => {
   formData.append('avatar', file);
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/user/avatar/", {
+    const response = await fetch("https://swapbox-backend.onrender.com/api/user/avatar/", {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -94,7 +94,7 @@ const ProfilePage: React.FC = () => {
       try {
         const token = localStorage.getItem('jwt_access');
         console.log("Token:", token);
-        const res = await fetch("http://127.0.0.1:8000/api/user-items/", {
+        const res = await fetch("https://swapbox-backend.onrender.com/api/user-items/", {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -122,7 +122,7 @@ const ProfilePage: React.FC = () => {
   const [profileImage, setProfileImage] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
   const profileImageurl = profileImage
-  ? (profileImage.startsWith('http') ? profileImage : `http://localhost:8000${profileImage}`)
+  ? (profileImage.startsWith('http') ? profileImage : `https://swapbox-backend.onrender.com${profileImage}`)
   : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
 
@@ -152,8 +152,8 @@ const ProfilePage: React.FC = () => {
     if (!token) return;
 
     const url = liked
-      ? `http://localhost:8000/api/items/${itemId}/unlike/`
-      : `http://localhost:8000/api/items/${itemId}/like/`;
+      ? `https://swapbox-backend.onrender.com/api/items/${itemId}/unlike/`
+      : `https://swapbox-backend.onrender.com/api/items/${itemId}/like/`;
 
     try {
       const res = await fetch(url, {
@@ -188,7 +188,7 @@ const ProfilePage: React.FC = () => {
   const token = localStorage.getItem('jwt_access');
 
   try {
-    const response = await fetch(`http://localhost:8000/api/items/${id}/`, {
+    const response = await fetch(`https://swapbox-backend.onrender.com/api/items/${id}/`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -216,7 +216,7 @@ const ProfilePage: React.FC = () => {
   const handleSaveEdit = async (id: number) => {
     const token = localStorage.getItem('jwt_access');
   try {
-    const response = await fetch(`http://localhost:8000/api/items/${id}/`, {
+    const response = await fetch(`https://swapbox-backend.onrender.com/api/items/${id}/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -267,7 +267,7 @@ const ProfilePage: React.FC = () => {
     if (!token || !text) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/items/${id}/comments/`, {
+      const res = await fetch(`https://swapbox-backend.onrender.com/api/items/${id}/comments/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
