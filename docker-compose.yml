@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    working_dir: /code
+    volumes:
+      - ./backend:/code
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./swaparea
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    volumes:
+      - ./swaparea:/app
+    command: npx next dev
