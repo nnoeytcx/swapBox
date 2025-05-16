@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /code
 
-COPY . /code/
+COPY backend/ /code/
 
 RUN pip install -r requirements.txt
 
