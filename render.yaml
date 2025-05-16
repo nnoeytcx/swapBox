@@ -6,6 +6,7 @@ services:
     plan : free
     region : singapore
     repo : https://github.com/nnoeytcx/swapBox.git
+    branch: deploy-render
     rootDir : backend
     envVars :
       - key : PORT
@@ -21,7 +22,8 @@ services:
     plan : free
     region : singapore
     repo : https://github.com/nnoeytcx/swapBox.git
-    rootDir : swaparea
+    branch: deploy-render
+    rootDir : frontend
     envVars :
       - key : PORT
         value : 80
