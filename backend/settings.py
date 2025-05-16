@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'books',
     'swapback',
     'rest_framework_simplejwt',
 ]
