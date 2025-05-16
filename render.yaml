@@ -1,18 +1,24 @@
 services:
   - type: web
-    name: swapback
+    name: backend
     env: docker
-    plan: free
-    region: oregon
-    branch: main  # or your actual branch
     dockerfilePath: backend/Dockerfile
-    buildFilter:
-      paths:
-        - backend/**
+    branch: main
+    plan: free
     envVars:
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
-        value: "1"
-      - key: DJANGO_SETTINGS_MODULE
-        value: backend.settings
+      - key: ENV_VAR_NAME
+        value: some_value
+    buildCommand: ""
+    startCommand: "python manage.py runserver 0.0.0.0:8000"
+
+  - type: web
+    name: frontend
+    env: docker
+    dockerfilePath: swaparea/Dockerfile
+    branch: main
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://backend.onrender.com
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
