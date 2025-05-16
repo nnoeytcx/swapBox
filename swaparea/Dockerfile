@@ -5,7 +5,6 @@ WORKDIR /src/app
 COPY . .
 
 RUN npm install
-
-EXPOSE 3000
-
-CMD ["npx" , "next" , "dev"]
+RUN npx next build --no-lint
+EXPOSE 80
+CMD ["npx" , "next" , "start", "-p" , "80"]
