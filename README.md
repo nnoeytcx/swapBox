@@ -3,7 +3,7 @@ HOW TO USE "RENDER BLUEPRINT (render.yaml)"
 Go to https://render.com/
 
 Select Blueprint
-
+For the Document on how to write Blueprint
 <img width="278" alt="Screenshot 2568-05-17 at 00 41 52" src="https://github.com/user-attachments/assets/2e7d1f37-d3b1-4e33-a3b4-3b9e3d4f516f" />
 
 New Bluprint
