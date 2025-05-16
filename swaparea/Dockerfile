@@ -1,6 +1,6 @@
 FROM node:slim
 
-WORKDIR /app/src
+WORKDIR /app
 
 COPY ./src ./src
 COPY package.json package-lock.json ./  
